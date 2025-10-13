@@ -1,0 +1,10 @@
+name: combined
+description: Combined Wikipedia and News dataset
+source_file: ${paths.combined_data}
+fields:
+  id_field: id
+  text_field: text
+  title_field: title
+  url_field: url
+  source_field: source
+sample_size: null

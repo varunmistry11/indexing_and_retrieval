@@ -1,0 +1,56 @@
+defaults:
+  - dataset: news
+  - index: boolean
+  - datastore: elasticsearch
+  - _self_
+
+# Project paths
+paths:
+  data_dir: data
+  wiki_data: huggingface_data/wikipedia_subset.jsonl
+  news_data: news_data/news_subset.jsonl
+  combined_data: combined_data/combined_dataset.jsonl
+  index_storage: indices
+  results_dir: results
+  plots_dir: plots
+
+# Text preprocessing
+preprocessing:
+  lowercase: true
+  remove_punctuation: true
+  remove_stopwords: true
+  stemming: true
+  min_word_length: 2
+  max_word_length: 50
+
+# Indexing parameters
+indexing:
+  batch_size: 1000
+  max_documents: null  # null for all documents
+  show_progress: true
+
+# Query parameters
+query:
+  default_operator: AND
+  max_results: 10
+  explain: false
+
+# Benchmarking
+benchmark:
+  num_queries: 100
+  warmup_queries: 10
+  concurrent_queries: 1
+  measure_memory: true
+  measure_latency: true
+  measure_throughput: true
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Experiment tracking
+experiment:
+  name: default_experiment
+  timestamp: true
+  save_results: true

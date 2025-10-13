@@ -1,0 +1,12 @@
+name: news
+description: News dataset from webz.io
+source_file: ${paths.news_data}
+fields:
+  id_field: id
+  text_field: text
+  title_field: title
+  url_field: url
+  author_field: author
+  published_field: published
+  site_field: site
+sample_size: 1000  # null for all documents

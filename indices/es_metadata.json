@@ -1,0 +1,9 @@
+{
+  "news_boolean_20251012_232857": {
+    "created_at": "2025-10-12T23:29:16.451251",
+    "document_count": 1000,
+    "index_type": "BOOLEAN",
+    "dataset": "news",
+    "version": "ESIndex_i1d2c1qTo0"
+  }
+}

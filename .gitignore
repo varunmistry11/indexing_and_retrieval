@@ -1,0 +1,219 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Data files - Keep structure but ignore data
+huggingface_data/*.jsonl
+news_data/*.jsonl
+combined_data/*.jsonl
+free-news-datasets/
+data/*.jsonl
+data/*.json
+*.jsonl
+*.csv
+*.tsv
+
+# Keep directory structure
+!.gitkeep
+!huggingface_data/.gitkeep
+!news_data/.gitkeep
+!combined_data/.gitkeep
+
+# Index storage - Keep structure but ignore indices
+indices/*
+!indices/.gitkeep
+!indices/es_metadata.json
+
+# Results and plots - Keep structure but ignore files
+results/*
+!results/.gitkeep
+plots/*
+!plots/.gitkeep
+
+# Logs
+*.log
+logs/
+*.out
+*.err
+
+# Hydra outputs
+outputs/
+.hydra/
+multirun/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Large data files (specific extensions)
+*.zip
+*.tar.gz
+*.tar.bz2
+*.7z
+*.rar
+*.gz
+*.bz2
+
+# Elasticsearch data (if running locally)
+elasticsearch-*/
+
+# Backup files
+*.backup
+*.old
+
+# Mac OS
+.AppleDouble
+.LSOverride
+Icon
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# Project specific
+# Allow example data but ignore actual datasets
+examples/data/
+test_data/
+
+# Ignore all large model files
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+*.pb
+
+# Keep important config and documentation
+!conf/**/*.yaml
+!*.md
+!*.txt
+!*.sh
+!LICENSE

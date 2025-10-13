@@ -1,0 +1,8 @@
+name: rocksdb
+type: DB2
+description: RocksDB key-value store
+db_path: ${paths.index_storage}/rocksdb
+create_if_missing: true
+compression: snappy
+write_buffer_size: 67108864  # 64MB
+max_open_files: 1000

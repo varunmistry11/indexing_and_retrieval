@@ -1,0 +1,37 @@
+type: TFIDF
+description: Index with TF-IDF scoring
+version: "3.0"
+compression: NONE
+query_proc: TERMatat
+optimization: Null
+store_positions: true
+store_offsets: true
+enable_ranking: true
+ranking_method: tfidf
+
+settings:
+  number_of_shards: 1
+  number_of_replicas: 0
+  refresh_interval: "1s"
+  similarity:
+    default:
+      type: BM25
+      b: 0.75
+      k1: 1.2
+
+mappings:
+  properties:
+    doc_id:
+      type: keyword
+    title:
+      type: text
+      analyzer: custom_analyzer
+      term_vector: with_positions_offsets_payloads
+      fielddata: true
+    text:
+      type: text
+      analyzer: custom_analyzer
+      term_vector: with_positions_offsets_payloads
+      fielddata: true
+    url:
+      type: keyword

@@ -1,0 +1,9 @@
+name: postgresql
+type: DB1
+description: PostgreSQL with GIN index
+host: localhost
+port: 5432
+database: ir_assignment
+username: postgres
+password: postgres
+pool_size: 5

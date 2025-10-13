@@ -1,0 +1,32 @@
+type: WORDCOUNT
+description: Index with word counts for ranking
+version: "2.0"
+compression: NONE
+query_proc: TERMatat
+optimization: Null
+store_positions: true
+store_offsets: false
+enable_ranking: true
+ranking_method: word_count
+
+settings:
+  number_of_shards: 1
+  number_of_replicas: 0
+  refresh_interval: "1s"
+
+mappings:
+  properties:
+    doc_id:
+      type: keyword
+    title:
+      type: text
+      analyzer: custom_analyzer
+      term_vector: with_positions_offsets
+      fielddata: true
+    text:
+      type: text
+      analyzer: custom_analyzer
+      term_vector: with_positions_offsets
+      fielddata: true
+    url:
+      type: keyword
