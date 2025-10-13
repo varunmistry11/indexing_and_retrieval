@@ -1,0 +1,7 @@
+name: self_tfidf_optimized
+type: TFIDF
+implementation: self
+query_proc: DOCatat
+optimization: Skipping
+compression:
+  type: CODE

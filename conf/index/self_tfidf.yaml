@@ -1,0 +1,7 @@
+name: self_tfidf
+type: TFIDF
+implementation: self
+query_proc: TERMatat
+optimization: Skipping
+compression:
+  type: NONE

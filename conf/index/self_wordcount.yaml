@@ -1,0 +1,7 @@
+name: self_wordcount
+type: WORDCOUNT
+implementation: self
+query_proc: TERMatat
+optimization: Null
+compression:
+  type: NONE

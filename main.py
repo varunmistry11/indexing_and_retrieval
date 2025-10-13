@@ -66,6 +66,9 @@ class IndexingCLI:
             # Currently only supports Elasticsearch
             if self.config.datastore.name == 'elasticsearch':
                 self.index_instance = ElasticsearchIndex(self.config)
+            elif self.config.datastore.name == 'custom':
+                from src.indices.self_index import SelfIndex
+                self.index_instance = SelfIndex(self.config)
             else:
                 raise NotImplementedError(f"Datastore {self.config.datastore.name} not yet implemented")
         return self.index_instance

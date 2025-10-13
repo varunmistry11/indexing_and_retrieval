@@ -1,0 +1,4 @@
+type: CLIB
+enabled: true
+library: gzip
+level: 6  # compression level (1-9)

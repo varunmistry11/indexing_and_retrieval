@@ -1,0 +1,7 @@
+name: self_boolean
+type: BOOLEAN
+implementation: self
+query_proc: TERMatat
+optimization: Null
+compression:
+  type: NONE

@@ -1,0 +1,4 @@
+type: CODE
+enabled: true
+method: gap_encoding
+variable_byte: true

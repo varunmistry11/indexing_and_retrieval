@@ -1,7 +1,5 @@
 name: custom
 type: CUSTOM
-description: Custom file-based datastore
-storage_dir: ${paths.index_storage}/custom
-serialization_format: json  # json, pickle, msgpack
-compression: gzip  # none, gzip, lz4
-chunk_size: 10000
+format: pickle  # json, pickle, or binary
+compression: none  # none, gzip, lz4
+storage_dir: ${paths.index_storage}/selfindex
