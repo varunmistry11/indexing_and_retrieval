@@ -8,6 +8,7 @@ import logging
 import math
 
 from .postings import PostingsList, PostingsListWithSkips
+from .compression import CompressionManager
 
 logger = logging.getLogger(__name__)
 
@@ -18,19 +19,27 @@ class InvertedIndex:
     Maps terms to postings lists.
     """
     
-    def __init__(self, use_skip_pointers: bool = False):
+    def __init__(self, use_skip_pointers: bool = False, compression_type: str = 'NONE'):
         """
         Initialize inverted index.
         
         Args:
             use_skip_pointers: Whether to use skip pointers (optimization)
+            compression_type: Type of compression to use (NONE, CODE, CLIB)
         """
         # Term -> PostingsList mapping
         self.dictionary: Dict[str, PostingsList] = {}
         
         # Configuration
         self.use_skip_pointers = use_skip_pointers
+        self.compression_type = compression_type
         
+        # Compression manager
+        if compression_type == 'CODE':
+            self.compression_manager = CompressionManager(compression_type='CODE')
+        else:
+            self.compression_manager = None
+
         # Statistics
         self.num_documents = 0
         self.num_terms = 0
@@ -162,30 +171,52 @@ class InvertedIndex:
     
     def to_dict(self) -> dict:
         """Convert index to dictionary for serialization."""
+        dictionary_data = {}
+    
+        for term, postings in self.dictionary.items():
+            postings_dict = postings.to_dict()
+            
+            # Apply compression if enabled
+            if self.compression_manager:
+                postings_dict = self.compression_manager.compress_postings_list(postings_dict)
+            
+            dictionary_data[term] = postings_dict
+        
         return {
-            'dictionary': {
-                term: postings.to_dict()
-                for term, postings in self.dictionary.items()
-            },
+            'dictionary': dictionary_data,
             'statistics': self.get_statistics(),
-            'use_skip_pointers': self.use_skip_pointers
+            'use_skip_pointers': self.use_skip_pointers,
+            'compression_type': self.compression_type
         }
     
     @classmethod
     def from_dict(cls, data: dict) -> 'InvertedIndex':
         """Create index from dictionary."""
-        index = cls(use_skip_pointers=data['use_skip_pointers'])
+        compression_type = data.get('compression_type', 'NONE')
+        index = cls(
+            use_skip_pointers=data['use_skip_pointers'],
+            compression_type=compression_type
+        )
+
+        # Initialize compression manager for decompression
+        if compression_type == 'CODE':
+            compression_manager = CompressionManager(compression_type='CODE')
+        else:
+            compression_manager = None
         
         # Restore dictionary
         for term, postings_data in data['dictionary'].items():
+            # Decompress if needed
+            if compression_manager and postings_data.get('compressed', False):
+                postings_data = compression_manager.decompress_postings_list(postings_data)
+
             if index.use_skip_pointers:
                 postings = PostingsListWithSkips()
             else:
                 postings = PostingsList()
+            
             postings.postings = [
-                type(postings.postings[0] if postings.postings else object).from_dict(p)
-                if postings.postings else PostingEntry.from_dict(p)
-                for p in postings_data['postings']
+                PostingEntry.from_dict(p) for p in postings_data['postings']
             ]
             index.dictionary[term] = postings
         

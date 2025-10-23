@@ -1,0 +1,7 @@
+name: self_tfidf_compressed
+type: TFIDF
+implementation: self
+query_proc: TERMatat
+optimization: Null
+compression:
+  type: CODE  # Use gap encoding

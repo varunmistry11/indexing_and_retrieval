@@ -159,7 +159,7 @@ class SelfIndex(IndexBase):
         logger.info(f"Creating index: {self.index_name}")
         
         # Initialize components
-        self.inverted_index = InvertedIndex(use_skip_pointers=self.use_skip_pointers)
+        self.inverted_index = InvertedIndex(use_skip_pointers=self.use_skip_pointers, compression_type=self.compression_type)
         self.doc_store = DocumentStore()
         self.stats = CollectionStatistics()
         
@@ -537,21 +537,6 @@ class SelfIndex(IndexBase):
         
         return file_ids
     
-    # Additional helper method for compatibility
-        
-        if not index_path.exists():
-            logger.warning(f"Index {index_name} not found")
-            return False
-        
-        try:
-            import shutil
-            shutil.rmtree(index_path)
-            logger.info(f"Deleted index: {index_name}")
-            return True
-        except Exception as e:
-            logger.error(f"Error deleting index: {e}")
-            return False
-    
     def list_indices(self) -> List[Dict[str, Any]]:
         """
         List all available indices.
@@ -703,33 +688,61 @@ class SelfIndex(IndexBase):
     
     def _save_component(self, component, file_path: Path):
         """Save a component to disk with optional compression."""
+        import pickle
+        import json
+        
         data = component.to_dict()
         
         if self.compression_type == 'CLIB':
-            # Use gzip compression
-            with gzip.open(str(file_path) + '.gz', 'wb') as f:
-                pickle.dump(data, f)
+            # File-level compression with gzip
+            if self.storage_format == 'json':
+                # JSON + gzip
+                json_str = json.dumps(data)
+                compressed_data = gzip.compress(json_str.encode('utf-8'))
+                with open(str(file_path) + '.gz', 'wb') as f:
+                    f.write(compressed_data)
+            else:
+                # Pickle + gzip
+                with gzip.open(str(file_path) + '.gz', 'wb') as f:
+                    pickle.dump(data, f)
         elif self.storage_format == 'json':
+            # JSON without file-level compression
             with open(file_path, 'w') as f:
                 json.dump(data, f)
-        else:  # pickle
+        else:
+            # Pickle without file-level compression
             with open(file_path, 'wb') as f:
                 pickle.dump(data, f)
     
     def _load_component(self, file_path: Path, component_class):
         """Load a component from disk."""
-        # Check for compressed version
+        import pickle
+        import json
+        
+        # Check for compressed version (.gz extension)
         compressed_path = Path(str(file_path) + '.gz')
         
         if compressed_path.exists():
-            with gzip.open(compressed_path, 'rb') as f:
-                data = pickle.load(f)
-        elif file_path.suffix == '.json' or self.storage_format == 'json':
-            with open(file_path, 'r') as f:
-                data = json.load(f)
+            # File-level compression (z=2)
+            if self.storage_format == 'json' or '.json' in str(file_path):
+                # Decompress and parse JSON
+                with gzip.open(compressed_path, 'rb') as f:
+                    json_str = f.read().decode('utf-8')
+                    data = json.loads(json_str)
+            else:
+                # Decompress pickle
+                with gzip.open(compressed_path, 'rb') as f:
+                    data = pickle.load(f)
+        elif file_path.exists():
+            # No file-level compression
+            if self.storage_format == 'json' or '.json' in str(file_path):
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+            else:
+                with open(file_path, 'rb') as f:
+                    data = pickle.load(f)
         else:
-            with open(file_path, 'rb') as f:
-                data = pickle.load(f)
+            raise FileNotFoundError(f"Component file not found: {file_path}")
         
         return component_class.from_dict(data)
     
