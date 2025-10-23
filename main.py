@@ -63,14 +63,30 @@ class IndexingCLI:
     def _get_index_instance(self):
         """Get or create index instance."""
         if self.index_instance is None:
-            # Currently only supports Elasticsearch
-            if self.config.datastore.name == 'elasticsearch':
-                self.index_instance = ElasticsearchIndex(self.config)
-            elif self.config.datastore.name == 'custom':
+            # Check implementation type
+            implementation = None
+            if hasattr(self.config.index, 'implementation'):
+                implementation = self.config.index.implementation
+            
+            # Determine which index to use
+            if implementation == 'self':
+                # Use SelfIndex
                 from src.indices.self_index import SelfIndex
                 self.index_instance = SelfIndex(self.config)
+                self.logger.info("Using SelfIndex implementation")
+            elif self.config.datastore.name == 'elasticsearch':
+                # Use Elasticsearch
+                self.index_instance = ElasticsearchIndex(self.config)
+                self.logger.info("Using Elasticsearch implementation")
+            elif self.config.datastore.name == 'custom':
+                # Custom datastore defaults to SelfIndex
+                from src.indices.self_index import SelfIndex
+                self.index_instance = SelfIndex(self.config)
+                self.logger.info("Using SelfIndex with custom datastore")
             else:
-                raise NotImplementedError(f"Datastore {self.config.datastore.name} not yet implemented")
+                raise NotImplementedError(
+                    f"Datastore {self.config.datastore.name} not yet implemented"
+                )
         return self.index_instance
     
     def setup(self):
@@ -107,14 +123,16 @@ class IndexingCLI:
         
         return True
     
-    def create_index(self, dataset: str = None, index_type: str = None, index_name: str = None):
+    def create_index(self, dataset: str = None, index_type: str = None, 
+                    index_name: str = None, config_name: str = None):
         """
         Create an index from a dataset.
         
         Args:
             dataset: Dataset to use (wiki, news, combined)
-            index_type: Type of index (boolean, wordcount, tfidf)
+            index_type: Type of index (boolean, wordcount, tfidf, self_boolean, etc.)
             index_name: Custom name for the index (optional)
+            config_name: Config file to use (config or config_self)
         """
         overrides = []
         if dataset:
@@ -122,14 +140,39 @@ class IndexingCLI:
         if index_type:
             overrides.append(f"index={index_type}")
         
+        # Use config_self if specified or if using self index
+        if config_name:
+            self.config_name = config_name
+        elif index_type and 'self_' in index_type:
+            self.config_name = 'config_self'
+        
         self._init_config(overrides)
+        
+        # Determine actual implementation
+        implementation = 'elasticsearch'
+        if hasattr(self.config.index, 'implementation'):
+            implementation = self.config.index.implementation
         
         self.logger.info("="*60)
         self.logger.info("CREATING INDEX")
         self.logger.info("="*60)
+        self.logger.info(f"Configuration: {self.config_name}")
         self.logger.info(f"Dataset: {self.config.dataset.name}")
         self.logger.info(f"Index Type: {self.config.index.type}")
-        self.logger.info(f"Datastore: {self.config.datastore.name}")
+        
+        # Display actual implementation
+        if implementation == 'self':
+            self.logger.info(f"Implementation: SelfIndex (Custom)")
+            storage_format = getattr(self.config.datastore, 'format', 'pickle')
+            self.logger.info(f"Storage Format: {storage_format}")
+            self.logger.info(f"Query Processor: {self.config.index.query_proc}")
+            self.logger.info(f"Optimization: {self.config.index.optimization}")
+            if hasattr(self.config.index, 'compression'):
+                comp_type = self.config.index.compression.type if hasattr(self.config.index.compression, 'type') else self.config.index.compression
+                self.logger.info(f"Compression: {comp_type}")
+        else:
+            self.logger.info(f"Implementation: Elasticsearch")
+            self.logger.info(f"Datastore: {self.config.datastore.name}")
         
         # Generate index name
         if index_name is None:
@@ -219,7 +262,7 @@ class IndexingCLI:
         self.logger.info(f"Plots saved to: {self.config.paths.plots_dir}")
     
     def query_index(self, query: str, index_name: str = None, dataset: str = None, 
-                    index_type: str = None, max_results: int = None):
+                    index_type: str = None, max_results: int = None, config_name: str = None):
         """
         Query an existing index.
         
@@ -229,6 +272,7 @@ class IndexingCLI:
             dataset: Dataset name (if index_name not provided)
             index_type: Index type (if index_name not provided)
             max_results: Maximum number of results to return
+            config_name: Config file to use (config or config_self)
         """
         overrides = []
         if dataset:
@@ -236,6 +280,12 @@ class IndexingCLI:
         if index_type:
             overrides.append(f"index={index_type}")
         
+        # Auto-select config
+        if config_name:
+            self.config_name = config_name
+        elif index_type and 'self_' in index_type:
+            self.config_name = 'config_self'
+
         self._init_config(overrides)
         
         # If no index name provided, list available indices
@@ -262,7 +312,7 @@ class IndexingCLI:
         self.logger.info(f"Querying index '{index_name}' with: {query}")
         
         index = self._get_index_instance()
-        results_json = index.query(index_name, query, max_results)
+        results_json = index.query(query, index_name, max_results)
         
         # Pretty print results
         import json
@@ -371,7 +421,7 @@ class IndexingCLI:
         self.logger.info(f"Reduction: {(1 - len(freq_after)/len(freq_before))*100:.1f}%")
     
     def benchmark(self, experiment_name: str = None, dataset: str = None, 
-                  index_type: str = None, index_name: str = None):
+                  index_type: str = None, index_name: str = None, config_name: str = None):
         """
         Run performance benchmarks on an existing index.
         
@@ -380,6 +430,7 @@ class IndexingCLI:
             dataset: Dataset name
             index_type: Index type
             index_name: Specific index to benchmark
+            config_name: Config file to use (config or config_self)
         """
         overrides = []
         if dataset:
@@ -387,6 +438,12 @@ class IndexingCLI:
         if index_type:
             overrides.append(f"index={index_type}")
         
+        # Auto-select config
+        if config_name:
+            self.config_name = config_name
+        elif index_type and 'self_' in index_type:
+            self.config_name = 'config_self'
+
         self._init_config(overrides)
         
         if experiment_name is None:

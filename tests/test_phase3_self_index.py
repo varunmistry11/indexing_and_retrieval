@@ -360,8 +360,7 @@ class TestQuerying:
         """Test phrase query."""
         index, config = indexed_system
         
-        # Note: phrase query syntax might need adjustment
-        results = index.query_with_params('"machine learning"', k=10)
+        results = index.query_with_params('"machine" "learning"', k=10)
         
         # Should find documents with "machine learning" as phrase
         assert isinstance(results, list)

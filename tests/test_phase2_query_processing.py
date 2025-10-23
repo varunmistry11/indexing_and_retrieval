@@ -177,7 +177,7 @@ class TestPhraseQueryProcessor:
         """Test phrase query with no matches."""
         # Doc 2 has "natural" at 5, we need a non-consecutive position
         other_term = PostingsList()
-        other_term.add_posting(doc_id=2, position=7)  # Changed from 6 to 7 (or 8)
+        other_term.add_posting(doc_id=2, position=7)  # Not consecutive with position 5
         
         result = PhraseQueryProcessor.phrase_query([self.natural, other_term])
         

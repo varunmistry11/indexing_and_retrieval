@@ -116,12 +116,14 @@ class IndexBase(ABC):
         pass
     
     @abstractmethod
-    def query(self, query: str) -> str:
+    def query(self, query: str, index_id: str = None, max_results: int = None) -> str:
         """
         Queries the already loaded index to generate a results json and return as str.
         
         Args:
             query: Input query in str format
+            index_id: Optional index identifier (uses loaded index if None)
+            max_results: Maximum results to return
             
         Returns:
             results: Output json str with results

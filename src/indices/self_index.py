@@ -54,16 +54,42 @@ class SelfIndex(IndexBase):
         """
         # Extract configuration parameters
         self.index_type = config.index.type  # BOOLEAN, WORDCOUNT, TFIDF
-        self.storage_format = config.get('datastore', {}).get('format', 'json')
-        self.compression_type = config.get('compression', {}).get('type', 'NONE')
-        self.use_skip_pointers = config.index.get('optimization', 'Null') == 'Skipping'
-        self.query_processor_type = config.index.get('query_proc', 'TERMatat')
+
+        # Handle datastore format
+        if hasattr(config, 'datastore') and hasattr(config.datastore, 'format'):
+            self.storage_format = config.datastore.format
+        else:
+            self.storage_format = 'pickle'
+        
+        # Handle compression - check nested structure
+        if hasattr(config.index, 'compression'):
+            if isinstance(config.index.compression, dict):
+                self.compression_type = config.index.compression.get('type', 'NONE')
+            elif hasattr(config.index.compression, 'type'):
+                self.compression_type = config.index.compression.type
+            else:
+                self.compression_type = str(config.index.compression)
+        else:
+            self.compression_type = 'NONE'
+        
+        # Handle optimization
+        if hasattr(config.index, 'optimization'):
+            opt_value = config.index.optimization
+            self.use_skip_pointers = (opt_value == 'Skipping')
+        else:
+            self.use_skip_pointers = False
+        
+        # Handle query processor
+        if hasattr(config.index, 'query_proc'):
+            self.query_processor_type = config.index.query_proc
+        else:
+            self.query_processor_type = 'TERMatat'
         
         # Map to enum values for parent class
-        info = self.index_type  # BOOLEAN, WORDCOUNT, TFIDF
-        dstore = 'CUSTOM'  # Always CUSTOM for SelfIndex
-        compr = self.compression_type if self.compression_type != 'NONE' else 'NONE'
-        qproc = self.query_processor_type  # TERMatat or DOCatat
+        info = self.index_type
+        dstore = 'CUSTOM'
+        compr = self.compression_type
+        qproc = self.query_processor_type
         optim = 'Skipping' if self.use_skip_pointers else 'Null'
         
         # Initialize parent class
@@ -309,28 +335,38 @@ class SelfIndex(IndexBase):
         
         logger.info(f"Updated index with {updated_count} new documents")
     
-    def query(self, query: str) -> str:
+    def query(self, query: str, index_id: str = None, max_results: int = None) -> str:
         """
         Query the index and return results as JSON string.
         
         Args:
             query: Input query string
+            index_id: Optional index identifier (uses loaded index if None)
+            max_results: Maximum results to return (default: 10)
             
         Returns:
             JSON string with results
         """
+        # If index_id provided and different from current, load it
+        if index_id is not None and index_id != self.index_name:
+            index_path = self._get_index_path(index_id)
+            if not index_path.exists():
+                raise FileNotFoundError(f"Index '{index_id}' not found at {index_path}")
+            self.load_index(str(index_path))
+        
         if not self.inverted_index:
-            raise ValueError("No index loaded. Call load_index() first.")
+            raise ValueError("No index loaded. Call load_index() first or provide index_id.")
         
         start_time = time.time()
         
-        # Default k value
-        k = 10
+        # Set k value
+        k = max_results if max_results else 10
         
         # Parse query
         try:
-            # Use the parser's internal method to get the tree structure
-            query_tree = self.query_parser._parse_boolean_expression(query)
+            # Use the parser properly - it returns dict structure directly
+            tokens = self.query_parser._tokenize(query)
+            query_tree, _ = self.query_parser._parse_or_expression(tokens, 0)
             logger.debug(f"Parsed query tree: {query_tree}")
         except Exception as e:
             logger.error(f"Error parsing query '{query}': {e}")

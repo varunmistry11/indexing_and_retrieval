@@ -287,7 +287,7 @@ class ElasticsearchIndex(IndexBase):
             self.indices_metadata[index_id]["document_count"] += (add_count - remove_count)
             self._save_metadata()
     
-    def query(self, index_id: str, query: str, max_results: int = None) -> str:
+    def query(self, query: str, index_id: str = None, max_results: int = None) -> str:
         """
         Query the index and return results as JSON string.
         
@@ -299,6 +299,8 @@ class ElasticsearchIndex(IndexBase):
         Returns:
             JSON string with results
         """
+        if index_id is None:
+            raise ValueError("index_id is required for Elasticsearch queries")
         if max_results is None:
             max_results = self.config.query.max_results
         

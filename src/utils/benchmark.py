@@ -126,7 +126,7 @@ class Benchmarker:
         
         for i in range(warmup_count):
             try:
-                index_instance.query(index_id, queries[i])
+                index_instance.query(queries[i], index_id)
             except Exception as e:
                 logger.warning(f"Warmup query {i} failed: {e}")
         
@@ -140,7 +140,7 @@ class Benchmarker:
                 
                 # Execute query and measure time
                 start_time = time.perf_counter()
-                result_json = index_instance.query(index_id, query)
+                result_json = index_instance.query(query, index_id)
                 end_time = time.perf_counter()
                 
                 # Measure memory after query
