@@ -420,11 +420,39 @@ class SelfIndex(IndexBase):
             if not processed_terms:
                 return json.dumps({'results': [], 'query_time': 0})
             
-            # Choose processor
-            if self.query_processor_type == 'TERMatat':
-                results = self.term_processor.process_query(processed_terms, k=k)
-            else:  # DOCatat
-                results = self.doc_processor.process_query(processed_terms, k=k)
+            # Choose processor based on optimization type
+            optimization = getattr(self.config.index, 'optimization', 'Null')
+            
+            if optimization == 'Thresholding':
+                # Use thresholding optimization
+                threshold = getattr(self.config.index, 'threshold_value', 0.1)
+                if self.query_processor_type == 'TERMatat':
+                    results = self.term_processor.process_query_with_threshold(
+                        processed_terms, k=k, threshold=threshold
+                    )
+                else:  # DOCatat
+                    results = self.doc_processor.process_query_with_threshold(
+                        processed_terms, k=k, threshold=threshold
+                    )
+            elif optimization == 'EarlyStopping':
+                # Use early stopping optimization
+                stability_window = getattr(self.config.index, 'stability_window', 3)
+                if self.query_processor_type == 'TERMatat':
+                    results = self.term_processor.process_query_with_early_stop(
+                        processed_terms, k=k, stability_window=stability_window
+                    )
+                else:  # DOCatat
+                    results = self.doc_processor.process_query_with_early_stop(
+                        processed_terms, k=k, stability_window=stability_window
+                    )
+            else:
+                # Use standard query processing (includes Skipping if enabled)
+                if self.query_processor_type == 'TERMatat':
+                    results = self.term_processor.process_query(processed_terms, k=k)
+                else:  # DOCatat
+                    results = self.doc_processor.process_query(processed_terms, k=k)
+
+            
         
         # Convert to output format
         output_results = []

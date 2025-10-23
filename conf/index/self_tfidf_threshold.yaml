@@ -1,0 +1,8 @@
+name: self_tfidf_threshold
+type: TFIDF
+implementation: self
+query_proc: TERMatat
+optimization: Thresholding
+threshold_value: 0.1  # Only consider scores above 10% of max
+compression:
+  type: NONE

@@ -1,0 +1,8 @@
+name: self_tfidf_earlystop
+type: TFIDF
+implementation: self
+query_proc: TERMatat
+optimization: EarlyStopping
+stability_window: 3  # Stop if top-k unchanged for 3 terms
+compression:
+  type: NONE
