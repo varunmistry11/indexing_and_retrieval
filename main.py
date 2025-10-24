@@ -68,30 +68,35 @@ class IndexingCLI:
     def _get_index_instance(self):
         """Get or create index instance."""
         if self.index_instance is None:
-            # Check implementation type
-            implementation = None
-            if hasattr(self.config.index, 'implementation'):
-                implementation = self.config.index.implementation
-            
-            # Determine which index to use
-            if implementation == 'self':
-                # Use SelfIndex
-                from src.indices.self_index import SelfIndex
-                self.index_instance = SelfIndex(self.config)
-                self.logger.info("Using SelfIndex implementation")
-            elif self.config.datastore.name == 'elasticsearch':
-                # Use Elasticsearch
-                self.index_instance = ElasticsearchIndex(self.config)
-                self.logger.info("Using Elasticsearch implementation")
-            elif self.config.datastore.name == 'custom':
-                # Custom datastore defaults to SelfIndex
-                from src.indices.self_index import SelfIndex
-                self.index_instance = SelfIndex(self.config)
-                self.logger.info("Using SelfIndex with custom datastore")
+            if self.config.datastore.name == 'rocksdb':
+                from src.indices.rocksdb_index import RocksDBIndex
+                self.index_instance = RocksDBIndex(self.config)
+                self.logger.info("Using RocksDB implementation")
             else:
-                raise NotImplementedError(
-                    f"Datastore {self.config.datastore.name} not yet implemented"
-                )
+                # Check implementation type
+                implementation = None
+                if hasattr(self.config.index, 'implementation'):
+                    implementation = self.config.index.implementation
+                
+                # Determine which index to use
+                if implementation == 'self':
+                    # Use SelfIndex
+                    from src.indices.self_index import SelfIndex
+                    self.index_instance = SelfIndex(self.config)
+                    self.logger.info("Using SelfIndex implementation")
+                elif self.config.datastore.name == 'elasticsearch':
+                    # Use Elasticsearch
+                    self.index_instance = ElasticsearchIndex(self.config)
+                    self.logger.info("Using Elasticsearch implementation")
+                elif self.config.datastore.name == 'custom':
+                    # Custom datastore defaults to SelfIndex
+                    from src.indices.self_index import SelfIndex
+                    self.index_instance = SelfIndex(self.config)
+                    self.logger.info("Using SelfIndex with custom datastore")
+                else:
+                    raise NotImplementedError(
+                        f"Datastore {self.config.datastore.name} not yet implemented"
+                    )
         return self.index_instance
     
     def setup(self):
@@ -129,7 +134,7 @@ class IndexingCLI:
         return True
     
     def create_index(self, dataset: str = None, index_type: str = None, 
-                    index_name: str = None, config_name: str = None):
+                    index_name: str = None, config_name: str = None, datastore: str = None):
         """
         Create an index from a dataset.
         
@@ -138,12 +143,15 @@ class IndexingCLI:
             index_type: Type of index (boolean, wordcount, tfidf, self_boolean, etc.)
             index_name: Custom name for the index (optional)
             config_name: Config file to use (config or config_self)
+            datastore: Datastore to use (elasticsearch, custom, rocksdb)
         """
         overrides = []
         if dataset:
             overrides.append(f"dataset={dataset}")
         if index_type:
             overrides.append(f"index={index_type}")
+        if datastore:
+            overrides.append(f"datastore={datastore}")
         
         # Use config_self if specified or if using self index
         if config_name:
@@ -267,7 +275,7 @@ class IndexingCLI:
         self.logger.info(f"Plots saved to: {self.config.paths.plots_dir}")
     
     def query_index(self, query: str, index_name: str = None, dataset: str = None, 
-                    index_type: str = None, max_results: int = None, config_name: str = None):
+                    index_type: str = None, max_results: int = None, config_name: str = None, datastore: str = None):
         """
         Query an existing index.
         
@@ -278,17 +286,22 @@ class IndexingCLI:
             index_type: Index type (if index_name not provided)
             max_results: Maximum number of results to return
             config_name: Config file to use (config or config_self)
+            datastore: Datastore to use (elasticsearch, custom, rocksdb, sqlite)
         """
         overrides = []
         if dataset:
             overrides.append(f"dataset={dataset}")
         if index_type:
             overrides.append(f"index={index_type}")
+        if datastore:
+            overrides.append(f"datastore={datastore}")
         
         # Auto-select config
         if config_name:
             self.config_name = config_name
         elif index_type and 'self_' in index_type:
+            self.config_name = 'config_self'
+        elif datastore == 'rocksdb':
             self.config_name = 'config_self'
 
         self._init_config(overrides)
@@ -315,9 +328,37 @@ class IndexingCLI:
         
         # Execute query
         self.logger.info(f"Querying index '{index_name}' with: {query}")
-        
+
         index = self._get_index_instance()
-        results_json = index.query(query, index_name, max_results)
+        
+        # Check which implementation and load index if needed
+        if self.config.datastore.name == 'rocksdb':
+            # Load RocksDB index
+            from pathlib import Path
+            index_path = Path('indices/rocksdb') / index_name
+            
+            if not index_path.exists():
+                self.logger.error(f"RocksDB index not found at {index_path}")
+                return
+            
+            index.load_index(str(index_path))
+            results_json = index.query(query, max_results=max_results)
+        
+        elif self.config.datastore.name == 'custom':
+            # Load SelfIndex
+            from pathlib import Path
+            index_path = Path('indices/selfindex') / index_name
+            
+            if not index_path.exists():
+                self.logger.error(f"SelfIndex not found at {index_path}")
+                return
+            
+            index.load_index(str(index_path))
+            results_json = index.query(query, max_results=max_results)
+        
+        else:
+            # Elasticsearch - no need to load
+            results_json = index.query(query, index_name, max_results)
         
         # Pretty print results
         import json
@@ -426,7 +467,7 @@ class IndexingCLI:
         self.logger.info(f"Reduction: {(1 - len(freq_after)/len(freq_before))*100:.1f}%")
     
     def benchmark(self, experiment_name: str = None, dataset: str = None, 
-                  index_type: str = None, index_name: str = None, config_name: str = None):
+                  index_type: str = None, index_name: str = None, config_name: str = None, datastore: str = None):
         """
         Run performance benchmarks on an existing index.
         
@@ -436,12 +477,15 @@ class IndexingCLI:
             index_type: Index type
             index_name: Specific index to benchmark
             config_name: Config file to use (config or config_self)
+            datastore: Datastore to use (elasticsearch, custom, rocksdb, sqlite)
         """
         overrides = []
         if dataset:
             overrides.append(f"dataset={dataset}")
         if index_type:
             overrides.append(f"index={index_type}")
+        if datastore:
+            overrides.append(f"datastore={datastore}")
         
         # Auto-select config
         if config_name:

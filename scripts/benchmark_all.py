@@ -14,6 +14,13 @@ import hydra
 import json
 import time
 import psutil
+import os
+from omegaconf import DictConfig, OmegaConf
+from dotenv import load_dotenv
+
+# Load .env variables and register resolver
+load_dotenv()
+OmegaConf.register_new_resolver("env", os.getenv)
 
 INDICES = {
     # Format: name: (config_type, description)

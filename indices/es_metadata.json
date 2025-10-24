@@ -12,5 +12,47 @@
     "index_type": "TFIDF",
     "dataset": "news",
     "version": "ESIndex_i3d2c1qTo0"
+  },
+  "es_news_boolean": {
+    "created_at": "2025-10-24T15:21:45.989445",
+    "document_count": 1000,
+    "index_type": "BOOLEAN",
+    "dataset": "news",
+    "version": "ESIndex_i1d2c1qTo0"
+  },
+  "es_news_wordcount": {
+    "created_at": "2025-10-24T15:22:06.940793",
+    "document_count": 1000,
+    "index_type": "WORDCOUNT",
+    "dataset": "news",
+    "version": "ESIndex_i2d2c1qTo0"
+  },
+  "es_news_tfidf": {
+    "created_at": "2025-10-24T15:22:28.245677",
+    "document_count": 1000,
+    "index_type": "TFIDF",
+    "dataset": "news",
+    "version": "ESIndex_i3d2c1qTo0"
+  },
+  "es_wiki_boolean": {
+    "created_at": "2025-10-24T15:24:39.325260",
+    "document_count": 1000,
+    "index_type": "BOOLEAN",
+    "dataset": "wikipedia",
+    "version": "ESIndex_i1d2c1qTo0"
+  },
+  "es_wiki_wordcount": {
+    "created_at": "2025-10-24T15:26:46.274783",
+    "document_count": 1000,
+    "index_type": "WORDCOUNT",
+    "dataset": "wikipedia",
+    "version": "ESIndex_i2d2c1qTo0"
+  },
+  "es_wiki_tfidf": {
+    "created_at": "2025-10-24T15:28:53.252590",
+    "document_count": 1000,
+    "index_type": "TFIDF",
+    "dataset": "wikipedia",
+    "version": "ESIndex_i3d2c1qTo0"
   }
 }

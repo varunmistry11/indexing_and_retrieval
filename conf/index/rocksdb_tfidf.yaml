@@ -1,0 +1,7 @@
+name: rocksdb_tfidf
+type: TFIDF
+implementation: rocksdb
+query_proc: TERMatat
+optimization: Null
+compression:
+  type: NONE

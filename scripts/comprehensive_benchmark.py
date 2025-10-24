@@ -16,7 +16,8 @@ from datetime import datetime
 
 # Configuration matrix
 DATASETS = ['news', 'wiki']
-DOC_SIZES = [1000, 10000, 100000]  # Adjust based on your data availability
+#DOC_SIZES = [1000, 10000, 100000]  # Adjust based on your data availability
+DOC_SIZES = [1000]  # Adjust based on your data availability
 INDEX_TYPES_SELF = ['self_boolean', 'self_wordcount', 'self_tfidf', 
                     'self_tfidf_compressed', 'self_tfidf_gzip']
 INDEX_TYPES_ES = ['boolean', 'wordcount', 'tfidf']

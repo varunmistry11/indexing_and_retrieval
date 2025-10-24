@@ -6,4 +6,4 @@ fields:
   text_field: text
   title_field: title
   url_field: url
-sample_size: null  # null for all documents
+sample_size: 1000  # null for all documents
