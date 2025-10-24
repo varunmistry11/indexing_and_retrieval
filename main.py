@@ -12,6 +12,11 @@ import fire
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load .env variables and register resolver
+load_dotenv()
+OmegaConf.register_new_resolver("env", os.getenv)
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))

@@ -692,6 +692,11 @@ class SelfIndex(IndexBase):
         import json
         
         data = component.to_dict()
+
+        # Force pickle format for CODE compression
+        storage_format = self.storage_format
+        if self.compression_type == 'CODE':
+            storage_format = 'pickle'  # Override to pickle for efficient byte storage
         
         if self.compression_type == 'CLIB':
             # File-level compression with gzip
@@ -721,6 +726,11 @@ class SelfIndex(IndexBase):
         
         # Check for compressed version (.gz extension)
         compressed_path = Path(str(file_path) + '.gz')
+
+        # Determine format (CODE compression uses pickle)
+        storage_format = self.storage_format
+        if self.compression_type == 'CODE':
+            storage_format = 'pickle'
         
         if compressed_path.exists():
             # File-level compression (z=2)

@@ -1,20 +1,20 @@
 name: elasticsearch
 type: DB1
 description: Elasticsearch datastore
-host: ${oc.env:ELASTICSEARCH_HOST,localhost}
-port: ${oc.env:ELASTICSEARCH_PORT,9200}
-scheme: ${oc.env:ELASTICSEARCH_SCHEME,http}
+host: ${env:ELASTICSEARCH_HOST,localhost}
+port: ${env:ELASTICSEARCH_PORT,9200}
+scheme: ${env:ELASTICSEARCH_SCHEME,https}
 timeout: 30
 max_retries: 3
 retry_on_timeout: true
 
 # Authentication from environment
-use_auth: ${oc.env:ELASTICSEARCH_USE_AUTH,false}
-username: ${oc.env:ELASTICSEARCH_USERNAME,elastic}
-password: ${oc.env:ELASTICSEARCH_PASSWORD,changeme}
+use_auth: ${env:ELASTICSEARCH_USE_AUTH,true}
+username: ${env:ELASTICSEARCH_USERNAME,elastic}
+password: ${env:ELASTICSEARCH_PASSWORD,changeme}
 
 # SSL settings
-verify_certs: ${oc.env:ELASTICSEARCH_VERIFY_CERTS,false}
+verify_certs: ${env:ELASTICSEARCH_VERIFY_CERTS,false}
 ssl_show_warn: false
 
 # Connection pool settings
