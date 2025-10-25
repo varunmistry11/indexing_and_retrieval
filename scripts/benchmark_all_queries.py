@@ -34,7 +34,7 @@ INDEX_VARIANTS = [
 ES_VARIANTS = ['es_boolean', 'es_wordcount', 'es_tfidf']
 
 DATASETS = ['news', 'wiki']
-DOC_SIZES = [1000, 10000]
+DOC_SIZES = [1000, 5000, 10000]
 #DOC_SIZES = [1000, 10000, 100000]
 NUM_QUERIES = 100
 WARMUP_QUERIES = 5

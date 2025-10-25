@@ -48,7 +48,7 @@ ES_VARIANTS = [
 
 DATASETS = ['news', 'wiki']
 #DOC_SIZES = [1000, 10000, 100000]
-DOC_SIZES = [1000, 10000]
+DOC_SIZES = [1000, 5000, 10000]
 
 
 def get_index_size(index_path):
