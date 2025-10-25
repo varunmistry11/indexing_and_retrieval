@@ -72,7 +72,7 @@ indices/*
 # Results and plots - Keep structure but ignore files
 results/*
 !results/.gitkeep
-plots/*
+
 !plots/.gitkeep
 
 # Logs
